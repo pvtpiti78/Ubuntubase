@@ -81,7 +81,34 @@ dpkg --add-architecture i386
 apt update
 log "i386 aktiviert"
 
-# ── Basis-Pakete ───────────────────────────────────────────────────────────────
+# ── NetworkManager — netplan Renderer umstellen ────────────────────────────────
+# Ubuntu Server (subiquity) trägt den Adapter in netplan mit renderer: networkd ein.
+# NM fasst gemangte Adapter nicht an → Icon grau, kein Netz in KDE/GNOME.
+# Lösung: netplan komplett durch NM-verwaltete Config ersetzen.
+info "netplan auf NetworkManager umstellen..."
+apt install -y network-manager
+
+# Subiquity-Config sichern und durch NM-Config ersetzen
+if [ -f /etc/netplan/00-installer-config.yaml ]; then
+    cp /etc/netplan/00-installer-config.yaml /etc/netplan/00-installer-config.yaml.bak
+fi
+
+# Alle bestehenden netplan-Configs deaktivieren
+for f in /etc/netplan/*.yaml; do
+    [ -f "$f" ] && mv "$f" "${f}.bak" 2>/dev/null || true
+done
+
+# Neue NM-Config schreiben
+cat > /etc/netplan/01-networkmanager.yaml << 'EOF'
+network:
+  version: 2
+  renderer: NetworkManager
+EOF
+
+chmod 600 /etc/netplan/01-networkmanager.yaml
+netplan apply 2>/dev/null || true
+systemctl enable NetworkManager
+log "netplan auf NetworkManager umgestellt"
 info "Basis-Pakete installieren..."
 apt install -y \
     git \
@@ -608,6 +635,16 @@ vm.swappiness=10
 EOF
 sysctl --system > /dev/null
 log "sysctl konfiguriert"
+
+# ── Systemsprache Deutsch ──────────────────────────────────────────────────────
+info "Systemsprache Deutsch setzen..."
+apt install -y locales language-pack-de language-pack-de-base
+sed -i 's/# de_DE.UTF-8 UTF-8/de_DE.UTF-8 UTF-8/' /etc/locale.gen
+locale-gen
+update-locale LANG=de_DE.UTF-8 LANGUAGE=de_DE:de LC_ALL=de_DE.UTF-8
+localectl set-locale LANG=de_DE.UTF-8
+localectl set-keymap de
+log "Systemsprache gesetzt"
 
 # ── Tastatur auf Deutsch ───────────────────────────────────────────────────────
 info "Tastaturlayout auf Deutsch setzen..."

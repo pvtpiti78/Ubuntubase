@@ -54,6 +54,16 @@ else
     log "nvidia_drm.modeset = Y — alles gut"
 fi
 
+# ── Unerwünschte KDE-Pakete vorab pinnen (vor dem Install!) ───────────────────
+# Muss VOR apt install passieren — sonst zieht plasma-desktop sie via Recommends rein
+info "Unerwünschte KDE-Pakete vorab pinnen..."
+cat > /etc/apt/preferences.d/kde-unwanted.pref << 'EOF'
+Package: plasma-discover plasma-discover-common plasma-discover-backend-fwupd plasma-discover-backend-snap plasma-discover-notifier kdeconnect kdeconnect-libs plasma-welcome plasma-firewall plasma-vault plasma-thunderbolt plasma-browser-integration plasma-disks partitionmanager kwalletmanager khelpcenter khelpcenter-data alacritty qrca spectacle
+Pin: release *
+Pin-Priority: -1
+EOF
+log "Unwanted-Pakete gepinnt"
+
 # ── KDE Plasma — minimale Pakete ───────────────────────────────────────────────
 info "KDE Plasma (minimal) installieren..."
 apt install -y \
@@ -111,13 +121,15 @@ EOF
     log "SDDM (Fallback) installiert und konfiguriert"
 fi
 
-# ── Unerwünschte KDE-Pakete entfernen + pinnen ────────────────────────────────
-# plasma-desktop zieht via Recommends einiges mit das wir nicht wollen
-info "Unerwünschte KDE-Pakete entfernen und pinnen..."
+# ── Unerwünschte KDE-Pakete entfernen ─────────────────────────────────────────
+# Purge was trotz Pin reingekommen sein könnte (z.B. bei erneutem Script-Run)
+info "Unerwünschte KDE-Pakete entfernen..."
 KDE_UNWANTED=(
     plasma-discover
     plasma-discover-common
     plasma-discover-backend-fwupd
+    plasma-discover-backend-snap
+    plasma-discover-notifier
     kdeconnect
     kdeconnect-libs
     plasma-welcome
@@ -125,20 +137,18 @@ KDE_UNWANTED=(
     plasma-vault
     plasma-thunderbolt
     plasma-browser-integration
+    plasma-disks
     partitionmanager
     kwalletmanager
+    khelpcenter
+    khelpcenter-data
+    alacritty
+    qrca
     spectacle
 )
-
-cat > /etc/apt/preferences.d/kde-unwanted.pref << 'EOF'
-Package: plasma-discover plasma-discover-common plasma-discover-backend-fwupd kdeconnect kdeconnect-libs plasma-welcome plasma-firewall plasma-vault plasma-thunderbolt plasma-browser-integration partitionmanager kwalletmanager spectacle
-Pin: release *
-Pin-Priority: -1
-EOF
-
 apt-mark auto "${KDE_UNWANTED[@]}" 2>/dev/null || true
 apt purge -y "${KDE_UNWANTED[@]}" 2>/dev/null || true
-log "Unerwünschte KDE-Pakete entfernt und gepinnt"
+log "Unerwünschte KDE-Pakete entfernt"
 
 # ── Fastfetch KDE-Variante ─────────────────────────────────────────────────────
 info "Fastfetch für KDE konfigurieren..."
