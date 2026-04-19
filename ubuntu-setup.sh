@@ -442,15 +442,15 @@ info "protontricks installieren..."
 apt install -y protontricks
 log "protontricks installiert"
 
-# ── ProtonPlus — aktuelle Version von GitHub ───────────────────────────────────
-info "ProtonPlus installieren (latest release)..."
-PROTONPLUS_LATEST=$(curl -fsSL "https://api.github.com/repos/vysp3r/ProtonPlus/releases/latest" \
-    | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-PROTONPLUS_URL="https://github.com/vysp3r/ProtonPlus/releases/download/v${PROTONPLUS_LATEST}/ProtonPlus.deb"
-wget -O /tmp/protonplus.deb "$PROTONPLUS_URL"
-apt install -y /tmp/protonplus.deb
-rm /tmp/protonplus.deb
-log "ProtonPlus ${PROTONPLUS_LATEST} installiert"
+# ── Pacstall ───────────────────────────────────────────────────────────────────
+info "Pacstall installieren..."
+bash -c "$(wget -q https://pacstall.dev/q/install -O -)"
+log "Pacstall installiert"
+
+# ── ProtonPlus (via Pacstall) ──────────────────────────────────────────────────
+info "ProtonPlus installieren..."
+sudo -u "$CURRENT_USER" pacstall -I protonplus
+log "ProtonPlus installiert"
 
 # ── Faugus Launcher — aktuelle Version von GitHub ─────────────────────────────
 info "Faugus Launcher installieren (latest release)..."
