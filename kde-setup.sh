@@ -87,6 +87,13 @@ apt install -y \
     plasma-systemmonitor
 log "KDE Plasma installiert"
 
+# ── KDE Sprachpakete Deutsch ───────────────────────────────────────────────────
+info "KDE Sprachpakete installieren..."
+apt install -y \
+    kde-l10n-de \
+    language-pack-kde-de
+log "KDE Sprachpakete installiert"
+
 # ── plasma-login-manager ───────────────────────────────────────────────────────
 # In Kubuntu 26.04 als Teil von Plasma 6.6 verfügbar (optional, nicht default)
 # Falls nicht im Repo: Fallback auf SDDM mit Warnung
@@ -119,6 +126,16 @@ GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
 CompositorCommand=kwin_wayland --no-lockscreen
 EOF
     log "SDDM (Fallback) installiert und konfiguriert"
+
+    # SDDM Theme auf Breeze Dark setzen — kein Flashbang beim Login
+    apt install -y sddm-theme-breeze
+    mkdir -p /etc/sddm.conf.d
+    cat > /etc/sddm.conf.d/theme.conf << 'EOF'
+[Theme]
+Current=breeze
+CursorTheme=breeze_cursors
+EOF
+    log "SDDM Breeze Dark Theme gesetzt"
 fi
 
 # ── Unerwünschte KDE-Pakete entfernen ─────────────────────────────────────────
