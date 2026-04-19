@@ -683,9 +683,10 @@ network:
 EOF
 
 chmod 600 /etc/netplan/01-networkmanager.yaml
-netplan apply 2>/dev/null || true
+# Kein netplan apply hier — würde laufende Verbindung killen!
+# Config greift nach dem Reboot automatisch.
 systemctl enable NetworkManager
-log "netplan auf NetworkManager umgestellt"
+log "netplan auf NetworkManager umgestellt — greift nach Reboot"
 
 # ── Aufräumen ──────────────────────────────────────────────────────────────────
 info "Aufräumen..."
