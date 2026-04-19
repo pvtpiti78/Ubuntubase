@@ -615,8 +615,7 @@ apt install -y locales language-pack-de language-pack-de-base
 sed -i 's/# de_DE.UTF-8 UTF-8/de_DE.UTF-8 UTF-8/' /etc/locale.gen
 locale-gen
 update-locale LANG=de_DE.UTF-8 LANGUAGE=de_DE:de LC_ALL=de_DE.UTF-8
-localectl set-locale LANG=de_DE.UTF-8
-localectl set-keymap de
+localectl set-locale LANG=de_DE.UTF-8 2>/dev/null || true
 log "Systemsprache gesetzt"
 
 # ── Tastatur auf Deutsch ───────────────────────────────────────────────────────
