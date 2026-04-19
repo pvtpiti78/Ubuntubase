@@ -89,9 +89,7 @@ log "KDE Plasma installiert"
 
 # ── KDE Sprachpakete Deutsch ───────────────────────────────────────────────────
 info "KDE Sprachpakete installieren..."
-apt install -y \
-    kde-l10n-de \
-    language-pack-kde-de
+apt install -y language-pack-kde-de
 log "KDE Sprachpakete installiert"
 
 # ── plasma-login-manager ───────────────────────────────────────────────────────
