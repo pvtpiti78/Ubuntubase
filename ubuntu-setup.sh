@@ -598,6 +598,9 @@ sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"${NEW_PARA
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=5/' /etc/default/grub
 
 update-grub
+# Frischen GRUB Environment-Block erstellen — verhindert "Ungültiger Environment-Block" Fehler
+rm -f /boot/grub/grubenv
+grub-editenv /boot/grub/grubenv create
 log "GRUB konfiguriert (Timeout 5s, Nvidia DRM, zswap deaktiviert)"
 
 # ── sysctl — vm.max_map_count (Steam/Wine) ────────────────────────────────────
