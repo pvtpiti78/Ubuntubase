@@ -81,34 +81,7 @@ dpkg --add-architecture i386
 apt update
 log "i386 aktiviert"
 
-# ── NetworkManager — netplan Renderer umstellen ────────────────────────────────
-# Ubuntu Server (subiquity) trägt den Adapter in netplan mit renderer: networkd ein.
-# NM fasst gemangte Adapter nicht an → Icon grau, kein Netz in KDE/GNOME.
-# Lösung: netplan komplett durch NM-verwaltete Config ersetzen.
-info "netplan auf NetworkManager umstellen..."
-apt install -y network-manager
-
-# Subiquity-Config sichern und durch NM-Config ersetzen
-if [ -f /etc/netplan/00-installer-config.yaml ]; then
-    cp /etc/netplan/00-installer-config.yaml /etc/netplan/00-installer-config.yaml.bak
-fi
-
-# Alle bestehenden netplan-Configs deaktivieren
-for f in /etc/netplan/*.yaml; do
-    [ -f "$f" ] && mv "$f" "${f}.bak" 2>/dev/null || true
-done
-
-# Neue NM-Config schreiben
-cat > /etc/netplan/01-networkmanager.yaml << 'EOF'
-network:
-  version: 2
-  renderer: NetworkManager
-EOF
-
-chmod 600 /etc/netplan/01-networkmanager.yaml
-netplan apply 2>/dev/null || true
-systemctl enable NetworkManager
-log "netplan auf NetworkManager umgestellt"
+# ── Basis-Pakete ───────────────────────────────────────────────────────────────
 info "Basis-Pakete installieren..."
 apt install -y \
     git \
@@ -684,6 +657,35 @@ log "Vorlagen angelegt"
 info "Berechtigungen Home-Verzeichnis setzen..."
 chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME"
 log "Berechtigungen gesetzt"
+
+# ── NetworkManager — netplan Renderer umstellen ────────────────────────────────
+# Ubuntu Server (subiquity) trägt den Adapter in netplan mit renderer: networkd ein.
+# NM fasst gemangte Adapter nicht an → Icon grau, kein Netz in KDE/GNOME.
+# Lösung: netplan komplett durch NM-verwaltete Config ersetzen.
+info "netplan auf NetworkManager umstellen..."
+apt install -y network-manager
+
+# Subiquity-Config sichern
+if [ -f /etc/netplan/00-installer-config.yaml ]; then
+    cp /etc/netplan/00-installer-config.yaml /etc/netplan/00-installer-config.yaml.bak
+fi
+
+# Alle bestehenden netplan-Configs deaktivieren
+for f in /etc/netplan/*.yaml; do
+    [ -f "$f" ] && mv "$f" "${f}.bak" 2>/dev/null || true
+done
+
+# Neue NM-Config schreiben
+cat > /etc/netplan/01-networkmanager.yaml << 'EOF'
+network:
+  version: 2
+  renderer: NetworkManager
+EOF
+
+chmod 600 /etc/netplan/01-networkmanager.yaml
+netplan apply 2>/dev/null || true
+systemctl enable NetworkManager
+log "netplan auf NetworkManager umgestellt"
 
 # ── Aufräumen ──────────────────────────────────────────────────────────────────
 info "Aufräumen..."
