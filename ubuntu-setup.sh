@@ -609,6 +609,11 @@ EOF
 sysctl --system > /dev/null
 log "sysctl konfiguriert"
 
+# ── Zeitzone setzen ───────────────────────────────────────────────────────────
+info "Zeitzone auf Europe/Berlin setzen..."
+timedatectl set-timezone Europe/Berlin
+log "Zeitzone gesetzt"
+
 # ── Systemsprache Deutsch ──────────────────────────────────────────────────────
 info "Systemsprache Deutsch setzen..."
 apt install -y locales language-pack-de language-pack-de-base
