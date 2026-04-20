@@ -158,20 +158,18 @@ apt install -y \
     libnvidia-gl:i386
 log "Nvidia installiert"
 
-# ── Nvidia Module — Early Loading (initramfs) ──────────────────────────────────
-info "Nvidia Module in initramfs eintragen..."
-cat > /etc/initramfs-tools/conf.d/nvidia-modules.conf << 'EOF'
+# ── Nvidia Module — Early Loading (dracut) ────────────────────────────────────
+# Ubuntu 26.04 nutzt dracut statt initramfs-tools
+# Verhindert Blackscreen/Race Condition bei Wayland + GDM/SDDM
+info "Nvidia Module in dracut eintragen..."
+mkdir -p /etc/dracut.conf.d
+cat > /etc/dracut.conf.d/nvidia.conf << 'EOF'
 # Nvidia Open — Early Loading
 # Verhindert Blackscreen/Race Condition bei Wayland + GDM/SDDM
-MODULES_INITRAMFS="nvidia nvidia_modeset nvidia_uvm nvidia_drm"
+force_drivers+=" nvidia nvidia_modeset nvidia_uvm nvidia_drm "
 EOF
-
-for mod in nvidia nvidia_modeset nvidia_uvm nvidia_drm; do
-    grep -qxF "$mod" /etc/initramfs-tools/modules || echo "$mod" >> /etc/initramfs-tools/modules
-done
-
-update-initramfs -u -k all
-log "Nvidia Early Loading konfiguriert"
+dracut -f --regenerate-all
+log "Nvidia Early Loading konfiguriert (dracut)"
 
 # ── nvidia.conf (modprobe) ─────────────────────────────────────────────────────
 info "nvidia.conf (modprobe) erstellen..."
