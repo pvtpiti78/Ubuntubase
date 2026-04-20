@@ -440,14 +440,14 @@ info "protontricks installieren..."
 apt install -y protontricks
 log "protontricks installiert"
 
-# ── Pacstall ───────────────────────────────────────────────────────────────────
-info "Pacstall installieren..."
-bash -c "$(wget -q https://pacstall.dev/q/install -O -)"
-log "Pacstall installiert"
+# ── Flatpak + ProtonPlus ──────────────────────────────────────────────────────
+info "Flatpak installieren..."
+apt install -y flatpak
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+log "Flatpak installiert"
 
-# ── ProtonPlus (via Pacstall) ──────────────────────────────────────────────────
-info "ProtonPlus installieren..."
-sudo -u "$CURRENT_USER" pacstall -I protonplus
+info "ProtonPlus installieren (Flatpak)..."
+flatpak install -y flathub com.vysp3r.ProtonPlus
 log "ProtonPlus installiert"
 
 # ── Faugus Launcher — aktuelle Version von GitHub ─────────────────────────────
