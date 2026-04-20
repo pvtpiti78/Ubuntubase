@@ -73,7 +73,11 @@ apt install -y \
     gnome-keyring \
     gvfs \
     gvfs-backends \
-    gnome-shell-extension-manager
+    gnome-shell-extension-manager \
+    papers \
+    showtime \
+    localsearch-extractor-ffmpeg \
+    localsearch-extractor-office
 log "GNOME 50 installiert"
 
 # ── GDM aktivieren ────────────────────────────────────────────────────────────
