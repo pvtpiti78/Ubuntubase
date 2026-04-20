@@ -80,6 +80,11 @@ apt upgrade -y
 apt full-upgrade -y
 log "System aktuell"
 
+# ── Basis-Tools ───────────────────────────────────────────────────────────────
+info "Basis-Tools installieren..."
+apt install -y curl wget git unzip fastfetch
+log "Basis-Tools installiert"
+
 # ── i386 Multiarch aktivieren ──────────────────────────────────────────────────
 info "i386 Multiarch aktivieren..."
 dpkg --add-architecture i386
