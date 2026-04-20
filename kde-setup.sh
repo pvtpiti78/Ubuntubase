@@ -84,7 +84,10 @@ apt install -y \
     gvfs \
     gvfs-backends \
     libnvidia-egl-wayland1 \
-    plasma-systemmonitor
+    plasma-systemmonitor \
+    plasma-desktoptheme \
+    plasma-workspace \
+    kdeplasma-addons
 log "KDE Plasma installiert"
 
 # ── KDE Sprachpakete Deutsch ───────────────────────────────────────────────────
