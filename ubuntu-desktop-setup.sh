@@ -6,7 +6,7 @@
 # Umfang: Snap-Purge, i386, Nvidia 595+ Open (CUDA 2404 Repo),
 #         NTSYNC, Fish, Starship, Fastfetch, Firefox (Mozilla PPA),
 #         Ubuntu Restricted Extras, Steam, ProtonPlus, Faugus,
-#         Heroic, LACT, gaming.conf, nvidia.conf ENV
+#         Heroic, LACT, gaming.conf
 # =============================================================================
 
 set -euo pipefail
@@ -76,7 +76,6 @@ log "APT konfiguriert"
 # ── System aktualisieren ───────────────────────────────────────────────────────
 info "System aktualisieren..."
 apt update
-apt upgrade -y
 apt full-upgrade -y
 log "System aktuell"
 
@@ -212,16 +211,6 @@ apt install -y \
     libnvidia-gl:i386
 log "Nvidia installiert"
 
-# ── nvidia.conf (modprobe) ─────────────────────────────────────────────────────
-info "nvidia.conf (modprobe) erstellen..."
-cat > /etc/modprobe.d/nvidia.conf << 'EOF'
-# Nvidia Open — Ubuntu 26.04
-# modeset=1 ab Treiber 595 driver-seitig default — explizit zur Sicherheit
-# fbdev=1 noch nicht default — nötig für stabilen simpledrm-Takeover (Linux 6.11+)
-options nvidia_drm modeset=1
-options nvidia_drm fbdev=1
-EOF
-log "nvidia.conf (modprobe) erstellt"
 
 # ── NTSYNC ────────────────────────────────────────────────────────────────────
 info "NTSYNC konfigurieren..."
@@ -512,23 +501,6 @@ ENABLE_HDR_WSI=1
 EOF
 log "gaming.conf erstellt"
 
-# ── nvidia.conf ENV (Wayland/Vulkan) ──────────────────────────────────────────
-info "nvidia.conf ENV erstellen..."
-cat > /etc/environment.d/nvidia.conf << 'EOF'
-GBM_BACKEND=nvidia-drm
-__GLX_VENDOR_LIBRARY_NAME=nvidia
-LIBVA_DRIVER_NAME=nvidia
-NVD_BACKEND=direct
-ELECTRON_OZONE_PLATFORM_HINT=auto
-
-# Hardware-Decoding Firefox
-MOZ_DISABLE_RDD_SANDBOX=1
-
-# GNOME + Nvidia: Cursor/Mouse-Bug Workaround
-# Bei Problemen (Cursor verschwindet, Freezes) diese Zeile aktivieren:
-# MUTTER_DEBUG_DISABLE_HW_CURSORS=1
-EOF
-log "nvidia.conf ENV erstellt"
 
 # ── sysctl — vm.max_map_count (Steam/Wine) ────────────────────────────────────
 info "sysctl vm.max_map_count setzen..."
@@ -581,7 +553,6 @@ echo -e "${BOLD}${GREEN}══════════════════�
 echo ""
 echo -e "  ${CYAN}Nach dem Reboot prüfen:${NC}"
 echo -e "  • Nvidia:   ${BOLD}nvidia-smi${NC}"
-echo -e "  • DRM:      ${BOLD}cat /sys/module/nvidia_drm/parameters/modeset${NC}  → Y"
 echo -e "  • NTSYNC:   ${BOLD}ls /dev/ntsync${NC}"
 echo -e "  • Snap:     ${BOLD}snap list${NC}  → Fehler erwartet (kein snapd)"
 echo -e "  • Firefox:  ${BOLD}firefox --version${NC}  → kein Snap"
