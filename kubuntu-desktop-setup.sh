@@ -551,7 +551,7 @@ log "Berechtigungen gesetzt"
 info "Unerwünschte Kubuntu-Pakete pinnen..."
 cat > /etc/apt/preferences.d/kubuntu-unwanted.pref << 'EOF'
 # Unerwünschte Kubuntu-Pakete — nicht benötigt
-Package: plasma-vault plasma-browser-integration plasma-discover plasma-discover-common khelpcenter htop kcalc kcharselect ksystemlog kwalletmanager qrca remmina synaptic software-properties-kde kubuntu-driver-manager kubuntu-manage-software
+Package: plasma-vault plasma-browser-integration plasma-discover plasma-discover-common plasma-discover-backend-fwupd plasma-discover-backend-snap plasma-discover-notifier khelpcenter htop kcalc kcharselect ksystemlog kwalletmanager qrca remmina synaptic software-properties-qt
 Pin: release *
 Pin-Priority: -1
 EOF
@@ -563,6 +563,9 @@ KUBUNTU_UNWANTED=(
     plasma-browser-integration
     plasma-discover
     plasma-discover-common
+    plasma-discover-backend-fwupd
+    plasma-discover-backend-snap
+    plasma-discover-notifier
     khelpcenter
     htop
     kcalc
@@ -572,17 +575,14 @@ KUBUNTU_UNWANTED=(
     qrca
     remmina
     synaptic
-    software-properties-kde
-    kubuntu-driver-manager
-    kubuntu-manage-software
+    software-properties-qt
 )
-apt-mark auto "${KUBUNTU_UNWANTED[@]}" 2>/dev/null || true
-apt purge -y "${KUBUNTU_UNWANTED[@]}" 2>/dev/null || true
+apt remove --purge -y "${KUBUNTU_UNWANTED[@]}" 2>/dev/null || true
+apt autoremove -y
 log "Unerwünschte Pakete entfernt"
 
 # ── Aufräumen ──────────────────────────────────────────────────────────────────
 info "Aufräumen..."
-apt autoremove -y
 apt clean
 log "Aufgeräumt"
 
