@@ -519,6 +519,19 @@ EOF
 sysctl --system > /dev/null
 log "sysctl konfiguriert"
 
+# ── ZRAM ──────────────────────────────────────────────────────────────────────
+info "ZRAM konfigurieren..."
+apt install -y zram-config zram-tools
+
+cat > /etc/default/zramswap << 'EOF'
+# ZRAM — 15% von 48GB RAM (~7GB)
+ALGO=zstd
+PERCENT=15
+EOF
+
+systemctl enable --now zramswap
+log "ZRAM konfiguriert"
+
 # ── Vorlagen (Rechtsklick → Neu erstellen) ─────────────────────────────────────
 info "Vorlagen-Verzeichnis anlegen..."
 TEMPLATES_DIR="$USER_HOME/Vorlagen"
