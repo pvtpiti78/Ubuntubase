@@ -547,6 +547,39 @@ info "Berechtigungen Home-Verzeichnis setzen..."
 chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME"
 log "Berechtigungen gesetzt"
 
+# ── Unerwünschte Pakete entfernen + pinnen ───────────────────────────────────
+info "Unerwünschte Kubuntu-Pakete pinnen..."
+cat > /etc/apt/preferences.d/kubuntu-unwanted.pref << 'EOF'
+# Unerwünschte Kubuntu-Pakete — nicht benötigt
+Package: plasma-vault plasma-browser-integration plasma-discover plasma-discover-common khelpcenter htop kcalc kcharselect ksystemlog kwalletmanager qrca remmina synaptic software-properties-kde kubuntu-driver-manager kubuntu-manage-software
+Pin: release *
+Pin-Priority: -1
+EOF
+log "Unerwünschte Pakete gepinnt"
+
+info "Unerwünschte Kubuntu-Pakete entfernen..."
+KUBUNTU_UNWANTED=(
+    plasma-vault
+    plasma-browser-integration
+    plasma-discover
+    plasma-discover-common
+    khelpcenter
+    htop
+    kcalc
+    kcharselect
+    ksystemlog
+    kwalletmanager
+    qrca
+    remmina
+    synaptic
+    software-properties-kde
+    kubuntu-driver-manager
+    kubuntu-manage-software
+)
+apt-mark auto "${KUBUNTU_UNWANTED[@]}" 2>/dev/null || true
+apt purge -y "${KUBUNTU_UNWANTED[@]}" 2>/dev/null || true
+log "Unerwünschte Pakete entfernt"
+
 # ── Aufräumen ──────────────────────────────────────────────────────────────────
 info "Aufräumen..."
 apt autoremove -y
