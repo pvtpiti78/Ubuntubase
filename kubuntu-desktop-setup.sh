@@ -588,7 +588,6 @@ KUBUNTU_UNWANTED=(
     qrca
     remmina
     synaptic
-    software-properties-qt
 )
 apt remove --purge -y "${KUBUNTU_UNWANTED[@]}" 2>/dev/null || true
 apt autoremove -y
