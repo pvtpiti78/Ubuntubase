@@ -1,15 +1,15 @@
 #!/bin/bash
 # =============================================================================
-# ubuntu-desktop-setup.sh — Ubuntu 26.04 Resolute Raccoon Desktop Setup
+# ubuntu-desktop-setup.sh — Ubuntu Desktop Setup
 # =============================================================================
-# Ausgangslage: Ubuntu 26.04 Desktop (Standard-Install)
-# Umfang: Snap-Purge, i386, Nvidia 595+ Open (CUDA 2404 Repo),
+# Ausgangslage: Ubuntu Desktop (Standard-Install)
+# Umfang: Snap-Purge, i386, Nvidia Open (CUDA Repo),
 #         NTSYNC, Fish, Starship, Fastfetch, Firefox (Mozilla PPA),
 #         Ubuntu Restricted Extras, Steam, ProtonPlus, Faugus,
 #         Heroic, LACT, gaming.conf
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -28,6 +28,10 @@ err()  { echo -e "${RED}[✗]${NC} $*"; exit 1; }
 CURRENT_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo "~$CURRENT_USER")
 
+# Ubuntu-Version automatisch erkennen
+UBUNTU_CODENAME=$(lsb_release -cs 2>/dev/null || echo "noble")
+UBUNTU_VERSION=$(lsb_release -rs 2>/dev/null || echo "26.04")
+
 clear
 echo -e "${BOLD}${CYAN}"
 echo "  ██╗   ██╗██████╗ ██╗   ██╗███╗   ██╗████████╗██╗   ██╗"
@@ -37,8 +41,8 @@ echo "  ██║   ██║██╔══██╗██║   ██║██
 echo "  ╚██████╔╝██████╔╝╚██████╔╝██║ ╚████║   ██║   ╚██████╔╝"
 echo "   ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝    ╚═════╝ "
 echo -e "${NC}"
-echo -e "  ${BOLD}Ubuntu 26.04 Resolute Raccoon — Desktop Setup${NC}"
-echo -e "  Snap-Purge · Nvidia Open (CUDA 2404) · Fish · Gaming ENV"
+echo -e "  ${BOLD}Ubuntu ${UBUNTU_VERSION} — Desktop Setup${NC}"
+echo -e "  Snap-Purge · Nvidia Open · Fish · Gaming ENV"
 echo ""
 echo -e "  ${YELLOW}Dieses Script richtet das System neu ein.${NC}"
 echo -e "  ${YELLOW}Drücke ENTER zum Starten oder CTRL+C zum Abbrechen.${NC}"
@@ -46,18 +50,14 @@ read -r
 
 # ── Snap purgen ────────────────────────────────────────────────────────────────
 info "Snap entfernen..."
-
-# Firefox-Snap zuerst — vor allem anderen
 snap remove --purge firefox 2>/dev/null || true
-
 snap remove --purge snap-store firmware-updater desktop-security-alert \
     desktop-security-center prompting-client snapd-desktop-integration 2>/dev/null || true
-snap remove --purge gtk-common-themes gnome-46-2404 mesa-2404 bare 2>/dev/null || true
+snap remove --purge gtk-common-themes gnome-46-2404 gnome-46-2410 mesa-2404 bare 2>/dev/null || true
 snap remove --purge core24 snapd 2>/dev/null || true
 apt purge -y snapd 2>/dev/null || true
 apt-mark hold snapd
 
-# nosnap.pref — verhindert Reinstall via apt
 cat > /etc/apt/preferences.d/nosnap.pref << 'EOF'
 Package: snapd
 Pin: release a=*
@@ -81,12 +81,13 @@ log "System aktuell"
 
 # ── Basis-Tools ───────────────────────────────────────────────────────────────
 info "Basis-Tools installieren..."
-apt install -y curl wget git unzip fastfetch
+apt install -y curl wget git unzip fastfetch lsb-release
 log "Basis-Tools installiert"
 
-info "Writing fastfetch config..."
+# ── Fastfetch Config ──────────────────────────────────────────────────────────
+info "Fastfetch config schreiben..."
 mkdir -p "$USER_HOME/.config/fastfetch"
-cat > "$USER_HOME/.config/fastfetch/config.jsonc" <<'FFEOF'
+cat > "$USER_HOME/.config/fastfetch/config.jsonc" << 'EOF'
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
@@ -99,70 +100,33 @@ cat > "$USER_HOME/.config/fastfetch/config.jsonc" <<'FFEOF'
     "modules": [
         "title",
         "separator",
-        {
-            "type": "os",
-            "key": "OS"
-        },
-        {
-            "type": "kernel",
-            "key": "Kernel"
-        },
-        {
-            "type": "uptime",
-            "key": "Uptime"
-        },
-        {
-            "type": "packages",
-            "key": "Packages"
-        },
+        { "type": "os",       "key": "OS"         },
+        { "type": "kernel",   "key": "Kernel"      },
+        { "type": "uptime",   "key": "Uptime"      },
+        { "type": "packages", "key": "Packages"    },
         "separator",
-        {
-            "type": "shell",
-            "key": "Shell"
-        },
-        {
-            "type": "terminal",
-            "key": "Terminal"
-        },
-        {
-            "type": "de",
-            "key": "DE/WM"
-        },
+        { "type": "shell",    "key": "Shell"       },
+        { "type": "terminal", "key": "Terminal"    },
+        { "type": "de",       "key": "DE/WM"       },
         "separator",
-        {
-            "type": "display",
-            "key": "Resolution"
-        },
+        { "type": "display",  "key": "Resolution"  },
         "separator",
-        {
-            "type": "cpu",
-            "key": "CPU"
-        },
+        { "type": "cpu",      "key": "CPU"         },
         {
             "type": "gpu",
             "key": "GPU",
             "driverSpecific": true,
             "format": "{name} [{driver}]"
         },
-        {
-            "type": "memory",
-            "key": "RAM"
-        },
-        {
-            "type": "disk",
-            "key": "Disk",
-            "folders": "/"
-        },
+        { "type": "memory",   "key": "RAM"         },
+        { "type": "disk",     "key": "Disk", "folders": "/" },
         "separator",
-        {
-            "type": "localip",
-            "key": "Local IP"
-        }
+        { "type": "localip",  "key": "Local IP"    }
     ]
 }
-FFEOF
+EOF
 chown "$CURRENT_USER:$CURRENT_USER" "$USER_HOME/.config/fastfetch/config.jsonc"
-
+log "Fastfetch konfiguriert"
 
 # ── i386 Multiarch aktivieren ──────────────────────────────────────────────────
 info "i386 Multiarch aktivieren..."
@@ -172,10 +136,11 @@ log "i386 aktiviert"
 
 # ── Ubuntu Restricted Extras ───────────────────────────────────────────────────
 info "Ubuntu Restricted Extras installieren..."
-apt install -y ubuntu-restricted-addons ubuntu-restricted-extras
+apt install -y ubuntu-restricted-addons ubuntu-restricted-extras || \
+    warn "Restricted Extras fehlgeschlagen — möglicherweise noch nicht verfügbar"
 log "Restricted Extras installiert"
 
-# ── Kernel Headers (vor Nvidia zwingend) ──────────────────────────────────────
+# ── Kernel Headers ────────────────────────────────────────────────────────────
 info "Kernel Headers installieren..."
 apt install -y \
     linux-headers-$(uname -r) \
@@ -190,27 +155,33 @@ options nouveau modeset=0
 EOF
 log "Nouveau geblockt"
 
-# ── Nvidia (CUDA Repo ubuntu2404) ─────────────────────────────────────────────
-# ubuntu2604-Repo ist noch Beta — 2404-Repo für stabile 595er Pakete verwenden
-info "Nvidia CUDA Repo einrichten (ubuntu2404)..."
-wget -P /tmp https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
-dpkg -i /tmp/cuda-keyring_1.1-1_all.deb
-rm /tmp/cuda-keyring_1.1-1_all.deb
-apt update
-log "CUDA Repo (2404) aktiviert"
+# ── Nvidia CUDA Repo ──────────────────────────────────────────────────────────
+# ubuntu2604-Repo verwenden falls verfügbar, sonst 2404 als Fallback
+info "Nvidia CUDA Repo einrichten..."
+if apt-cache search nvidia-open 2>/dev/null | grep -q nvidia-open; then
+    warn "Nvidia bereits in Repos verfügbar — CUDA Repo übersprungen"
+else
+    CUDA_REPO="ubuntu2404"
+    wget -q -P /tmp "https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_REPO}/x86_64/cuda-keyring_1.1-1_all.deb" \
+        && dpkg -i /tmp/cuda-keyring_1.1-1_all.deb \
+        && rm /tmp/cuda-keyring_1.1-1_all.deb \
+        && apt update \
+        && log "CUDA Repo (${CUDA_REPO}) aktiviert" \
+        || warn "CUDA Repo fehlgeschlagen"
+fi
 
 info "Nvidia Open + i386 Libs + VAAPI + EGL-Wayland installieren..."
 apt install -y \
     nvidia-open \
     nvidia-vaapi-driver \
     libnvidia-egl-wayland1 \
-    libnvidia-compute:i386 \
-    libnvidia-decode:i386 \
-    libnvidia-fbc1:i386 \
-    libnvidia-encode:i386 \
-    libnvidia-gl:i386
+    libnvidia-compute-570:i386 \
+    libnvidia-decode-570:i386 \
+    libnvidia-fbc1-570:i386 \
+    libnvidia-encode-570:i386 \
+    libnvidia-gl-570:i386 || \
+warn "Einige i386 Nvidia Libs fehlgeschlagen — Versionsnummer prüfen"
 log "Nvidia installiert"
-
 
 # ── NTSYNC ────────────────────────────────────────────────────────────────────
 info "NTSYNC konfigurieren..."
@@ -226,7 +197,6 @@ wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- \
 echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.gpg] https://packages.mozilla.org/apt mozilla main" \
     | tee /etc/apt/sources.list.d/mozilla.list
 
-# Mozilla PPA höher pinnen als ubuntu-repos (verhindert snap-Fallback)
 cat > /etc/apt/preferences.d/mozilla.pref << 'EOF'
 Package: *
 Pin: origin packages.mozilla.org
@@ -246,6 +216,7 @@ cat > "$FIREFOX_POLICIES_DIR/policies.json" << 'EOF'
     "DisableTelemetry": true,
     "DisablePocket": true,
     "DisableFirefoxStudies": true,
+    "DisableFeedbackCommands": true,
     "DisableFormHistory": false,
     "Preferences": {
       "media.ffmpeg.vaapi.enabled":                  { "Value": true, "Status": "default" },
@@ -263,12 +234,11 @@ log "Firefox konfiguriert"
 # ── Fish Shell ─────────────────────────────────────────────────────────────────
 info "Fish Shell installieren..."
 apt install -y fish
-
 chsh -s /usr/bin/fish "$CURRENT_USER"
 
 mkdir -p "$USER_HOME/.config/fish"
 cat > "$USER_HOME/.config/fish/config.fish" << 'EOF'
-# Fish Config — Ubuntu 26.04 Desktop
+# Fish Config — Ubuntu Desktop
 if status is-interactive
     # Starship prompt
     starship init fish | source
@@ -291,8 +261,6 @@ if status is-interactive
     alias remove='sudo apt remove -y'
     alias purge='sudo apt purge -y'
     alias search='apt search'
-
-    # Cache leeren
     alias clean='sudo apt autoremove -y && sudo apt clean'
 
     # Systemd
@@ -307,7 +275,6 @@ if status is-interactive
     alias gp='git push'
 end
 EOF
-
 chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME/.config/fish"
 log "Fish Shell konfiguriert"
 
@@ -385,15 +352,15 @@ log "System-Fonts installiert"
 info "JetBrainsMono Nerd Font installieren..."
 FONT_DIR="/usr/share/fonts/JetBrainsMonoNF"
 mkdir -p "$FONT_DIR"
-FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
 TMP_FONT=$(mktemp -d)
-curl -fsSL "$FONT_URL" -o "$TMP_FONT/JetBrainsMono.zip"
+curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip" \
+    -o "$TMP_FONT/JetBrainsMono.zip"
 unzip -q "$TMP_FONT/JetBrainsMono.zip" -d "$FONT_DIR"
 rm -rf "$TMP_FONT"
 fc-cache -fv > /dev/null
 log "JetBrainsMono Nerd Font installiert"
 
-# ── Gaming — Steam ─────────────────────────────────────────────────────────────
+# ── Steam ──────────────────────────────────────────────────────────────────────
 info "Steam installieren..."
 apt install -y steam-installer
 log "Steam installiert"
@@ -413,38 +380,47 @@ info "ProtonPlus installieren (Flatpak)..."
 flatpak install -y flathub com.vysp3r.ProtonPlus
 log "ProtonPlus installiert"
 
-# ── Faugus Launcher — aktuelle Version von GitHub ─────────────────────────────
+# ── Faugus Launcher ───────────────────────────────────────────────────────────
 info "Faugus Launcher installieren (latest release)..."
-FAUGUS_LATEST=$(curl -fsSL "https://api.github.com/repos/Faugus/faugus-launcher/releases/latest" \
+FAUGUS_LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/Faugus/faugus-launcher/releases/latest" \
     | grep '"tag_name"' | sed 's/.*"\([^"]*\)".*/\1/')
-FAUGUS_URL="https://github.com/Faugus/faugus-launcher/releases/download/${FAUGUS_LATEST}/faugus-launcher_${FAUGUS_LATEST}-1_all.deb"
-wget -O /tmp/faugus.deb "$FAUGUS_URL"
-apt install -y /tmp/faugus.deb
-rm /tmp/faugus.deb
-log "Faugus Launcher ${FAUGUS_LATEST} installiert"
+FAUGUS_LATEST="${FAUGUS_LATEST_TAG#v}"
+FAUGUS_URL="https://github.com/Faugus/faugus-launcher/releases/download/${FAUGUS_LATEST_TAG}/faugus-launcher_${FAUGUS_LATEST}-1_all.deb"
+if wget -q --show-progress -O /tmp/faugus.deb "$FAUGUS_URL"; then
+    apt install -y /tmp/faugus.deb && log "Faugus Launcher ${FAUGUS_LATEST} installiert"
+    rm -f /tmp/faugus.deb
+else
+    warn "Faugus Download fehlgeschlagen — übersprungen"
+fi
 
-# ── Heroic Games Launcher — aktuelle Version von GitHub ───────────────────────
+# ── Heroic Games Launcher ─────────────────────────────────────────────────────
 info "Heroic Games Launcher installieren (latest release)..."
-HEROIC_LATEST=$(curl -fsSL "https://api.github.com/repos/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest" \
-    | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-HEROIC_URL="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v${HEROIC_LATEST}/Heroic-${HEROIC_LATEST}-linux-amd64.deb"
-wget -O /tmp/heroic.deb "$HEROIC_URL"
-apt install -y /tmp/heroic.deb
-rm /tmp/heroic.deb
-log "Heroic Games Launcher ${HEROIC_LATEST} installiert"
+HEROIC_LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/Heroic-Games-Launcher/HeroicGamesLauncher/releases/latest" \
+    | grep '"tag_name"' | sed 's/.*"\([^"]*\)".*/\1/')
+HEROIC_LATEST="${HEROIC_LATEST_TAG#v}"
+HEROIC_URL="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/${HEROIC_LATEST_TAG}/Heroic-${HEROIC_LATEST}-linux-amd64.deb"
+if wget -q --show-progress -O /tmp/heroic.deb "$HEROIC_URL"; then
+    apt install -y /tmp/heroic.deb && log "Heroic Games Launcher ${HEROIC_LATEST} installiert"
+    rm -f /tmp/heroic.deb
+else
+    warn "Heroic Download fehlgeschlagen — übersprungen"
+fi
 
-# ── LACT — aktuelle Version von GitHub ────────────────────────────────────────
+# ── LACT ──────────────────────────────────────────────────────────────────────
 info "LACT installieren (latest release)..."
-LACT_LATEST=$(curl -fsSL "https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest" \
-    | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-LACT_URL="https://github.com/ilya-zlobintsev/LACT/releases/download/v${LACT_LATEST}/lact-${LACT_LATEST}-0.amd64.ubuntu-2404.deb"
-wget -O /tmp/lact.deb "$LACT_URL"
-apt install -y /tmp/lact.deb
-rm /tmp/lact.deb
-systemctl enable --now lactd
-log "LACT ${LACT_LATEST} installiert"
+LACT_LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest" \
+    | grep '"tag_name"' | sed 's/.*"\([^"]*\)".*/\1/')
+LACT_LATEST="${LACT_LATEST_TAG#v}"
+LACT_URL="https://github.com/ilya-zlobintsev/LACT/releases/download/${LACT_LATEST_TAG}/lact-${LACT_LATEST}-0.amd64.ubuntu-2404.deb"
+if wget -q --show-progress -O /tmp/lact.deb "$LACT_URL"; then
+    apt install -y /tmp/lact.deb && log "LACT ${LACT_LATEST} installiert"
+    rm -f /tmp/lact.deb
+    systemctl enable --now lactd
+else
+    warn "LACT Download fehlgeschlagen — übersprungen"
+fi
 
-# ── gaming.conf (Environment Variables) ───────────────────────────────────────
+# ── gaming.conf ───────────────────────────────────────────────────────────────
 info "gaming.conf erstellen..."
 mkdir -p /etc/environment.d
 cat > /etc/environment.d/gaming.conf << 'EOF'
@@ -456,21 +432,22 @@ __GL_VRR_ALLOWED=1
 __GL_SHADER_DISK_CACHE_SIZE=12000000000
 
 ### Proton / Wayland
+PROTON_DLSS_UPGRADE=1
 PROTON_ENABLE_NGX_UPDATER=1
 PROTON_ENABLE_WAYLAND=1
 PROTON_ENABLE_NVAPI=1
 PROTON_USE_NTSYNC=1
+DXVK_NVAPI_VKREFLEX=1
+PROTON_PRIORITY_HIGH=1
 
-### NTSYNC — kein esync/fsync
+### VKD3D Descriptor Heap (mainline seit vkd3d-proton 20260521)
+VKD3D_CONFIG=descriptor_heap
+
+### NTSYNC
 WINEFSYNC=0
 WINEESYNC=0
 
-### VKD3D — Descriptor Heap
-# Nur mit CachyOS Proton / Proton-GE aktiv — Standard-Proton ignoriert das
-PROTON_VKD3D_HEAP=1
-VKD3D_CONFIG=descriptor_heap
-
-### DLSS SR — Preset Latest, 50% Skalierung
+### DLSS SR
 DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE=on
 DXVK_NVAPI_DRS_NGX_DLSS_SR_MODE=custom
 DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_SCALING_RATIO=50
@@ -480,38 +457,38 @@ DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
 DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE=on
 DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
 
-### Frame Generation — Dynamic MFG
+### Frame Generation (Dynamic MFG)
 DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE=on
 DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
 DXVK_NVAPI_DRS_NGX_DLSSG_MODE=dynamic
-DXVK_NVAPI_DRS_NGX_DLSSG_DYNAMIC_TARGET_FRAME_RATE=240
+DXVK_NVAPI_DRS_NGX_DLSSG_DYNAMIC_TARGET_FRAME_RATE=360
 DXVK_NVAPI_DRS_NGX_DLSSG_DYNAMIC_MULTI_FRAME_COUNT_MAX=5
 
-### Frame Rate Cap — 237 FPS (VRR-Dropout-Schutz bei 240Hz)
-DXVK_FRAME_RATE=237
-VKD3D_FRAME_RATE=237
+### Frame Rate Cap (355 für VRR Dropout-Schutz bei 360Hz)
+DXVK_FRAME_RATE=355
+VKD3D_FRAME_RATE=355
 
 ### HDR
 DXVK_HDR=1
 PROTON_ENABLE_HDR=1
 ENABLE_HDR_WSI=1
 
-### Debug (DLSS + DLSSG Indicator) — bei Bedarf einkommentieren
+### Debug (auskommentiert)
 # DXVK_NVAPI_SET_NGX_DEBUG_OPTIONS="DLSSIndicator=1024,DLSSGIndicator=2"
 EOF
 log "gaming.conf erstellt"
 
-# ── nvidia.conf ENV ───────────────────────────────────────────────────────────
-info "nvidia.conf ENV erstellen..."
+# ── nvidia.conf ───────────────────────────────────────────────────────────────
+info "nvidia.conf erstellen..."
 cat > /etc/environment.d/nvidia.conf << 'EOF'
 LIBVA_DRIVER_NAME=nvidia
 NVD_BACKEND=direct
 MOZ_DISABLE_RDD_SANDBOX=1
 EOF
-log "nvidia.conf ENV erstellt"
+log "nvidia.conf erstellt"
 
-# ── sysctl — vm.max_map_count (Steam/Wine) ────────────────────────────────────
-info "sysctl vm.max_map_count setzen..."
+# ── sysctl ────────────────────────────────────────────────────────────────────
+info "sysctl konfigurieren..."
 cat > /etc/sysctl.d/99-gaming.conf << 'EOF'
 vm.max_map_count=2147483642
 vm.swappiness=10
@@ -519,7 +496,7 @@ EOF
 sysctl --system > /dev/null
 log "sysctl konfiguriert"
 
-# ── Vorlagen (Rechtsklick → Neu erstellen) ─────────────────────────────────────
+# ── Vorlagen ──────────────────────────────────────────────────────────────────
 info "Vorlagen-Verzeichnis anlegen..."
 TEMPLATES_DIR="$USER_HOME/Vorlagen"
 mkdir -p "$TEMPLATES_DIR"
@@ -542,7 +519,7 @@ EOF
 chown -R "$CURRENT_USER:$CURRENT_USER" "$TEMPLATES_DIR"
 log "Vorlagen angelegt"
 
-# ── Berechtigungen Home-Verzeichnis ───────────────────────────────────────────
+# ── Berechtigungen ────────────────────────────────────────────────────────────
 info "Berechtigungen Home-Verzeichnis setzen..."
 chown -R "$CURRENT_USER:$CURRENT_USER" "$USER_HOME"
 log "Berechtigungen gesetzt"
@@ -562,7 +539,7 @@ echo ""
 echo -e "  ${CYAN}Nach dem Reboot prüfen:${NC}"
 echo -e "  • Nvidia:   ${BOLD}nvidia-smi${NC}"
 echo -e "  • NTSYNC:   ${BOLD}ls /dev/ntsync${NC}"
-echo -e "  • Snap:     ${BOLD}snap list${NC}  → Fehler erwartet (kein snapd)"
+echo -e "  • Snap:     ${BOLD}snap list${NC}  → Fehler erwartet"
 echo -e "  • Firefox:  ${BOLD}firefox --version${NC}  → kein Snap"
 echo ""
 echo -e "  ${YELLOW}Neustart empfohlen.${NC}"
