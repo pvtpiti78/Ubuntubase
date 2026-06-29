@@ -586,7 +586,7 @@ log "ZRAM konfiguriert"
 # ── XanMod-Edge Kernel (x64v3) ────────────────────────────────────────────────
 info "XanMod-Repository einrichten..."
 curl -fsSL https://dl.xanmod.org/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg
-echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' \
+echo "deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org $(lsb_release -sc) main" \
     > /etc/apt/sources.list.d/xanmod-release.list
 apt update
 log "XanMod-Repository eingerichtet"
