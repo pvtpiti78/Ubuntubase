@@ -207,13 +207,12 @@ log "power-profiles-daemon aktiv"
 # ── AMD GPU Stack (Mesa / RADV / VAAPI) ──────────────────────────────────────
 info "AMD GPU Treiber-Stack installieren (Mesa/RADV, mainline im Kernel)..."
 apt install -y \
-    firmware-amd-graphics \
     mesa-vulkan-drivers \
     vulkan-tools \
     mesa-va-drivers \
     vainfo \
     mesa-utils
-log "AMD GPU Stack installiert (RADV ist Default-Vulkan-ICD, kein DKMS nötig)"
+log "AMD GPU Stack installiert (RADV ist Default-Vulkan-ICD, Firmware via linux-firmware bereits dabei, kein DKMS nötig)"
 
 # ── NTSYNC ────────────────────────────────────────────────────────────────────
 # Kernel 7.0 (Ubuntu-Stock) bringt NTSYNC bereits aktiv mit — sicherheitshalber
